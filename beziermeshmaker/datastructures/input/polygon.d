@@ -6,6 +6,9 @@ class Polygon {
 	vec3[] vertices;
 	vec3 centroid;
 
+	//Used to carry forward information from the initial polygons to the output surfaces
+	string[string] metadata;
+
 	this(float[3][] vertices) {
 		foreach (float[3] coords ; vertices) {
 			this.vertices ~= new vec3(coords[0], coords[1], coords[2]);

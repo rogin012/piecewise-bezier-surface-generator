@@ -2,6 +2,8 @@ module beziermeshmaker.datastructures.quadmesh;
 
 import std.math;
 import std.container;
+import std.conv;
+import std.algorithm;
 
 public import beziermeshmaker.datastructures.meshpoint;
 public import beziermeshmaker.datastructures.quadcell;
@@ -30,6 +32,9 @@ class QuadMesh {
 		linkQuads();
 
 		//If adjacent quads have inconsistent vertex orders/normals, it breaks the connection guarantee Pi(0, t) = Pi+1(t, 0)
+		//This can still happen for non-orientable surfaces, though all quads for a given input polygon will share the same final orientation.
+		//This means that transitioning between quads with different orientations can only happen when X or Y equals 0, and the coordinate transformation
+		//becomes source.xy = dest.xy, rather than source.xy = dest.yx
 		orientNormals();
 
 		//All neighbors of a mesh point are guaranteed to share it as a vertex, but they may be out of order (i.e. point.neighbors[0] and point.neighbors[1] don't have a common edge.
@@ -69,6 +74,9 @@ class QuadMesh {
 				QuadCell cell = new QuadCell();
 				cell.vertices = [originalVertex, mid1, polyCenter, mid2];
 				cells ~= [cell];
+
+				cell.metadata = poly.metadata.dup;
+				cell.metadata[QuadCell.VERTEX_METADATA_KEY] = to!string(i);
 
 				//Each cell will be added exactly once to each of the mesh points
 				//They won't necessarily be in order, but that doesn't impact the rest of the algorithm
@@ -121,14 +129,22 @@ class QuadMesh {
 
 		while(!toProcess.empty) {
 			QuadCell current = toProcess.removeAny();
+			assert(current !is null);
 			seen[current] = true;
 
 			for (int i = 0; i < 4; i++) {
 				QuadCell neighbor = current.getNeighbor(i);
 				if (neighbor !is null && neighbor !in seen) {
 					if(neighbor.getNeighbor(i) == current) {
-						flipQuadVertexOrder(neighbor);
+						//This ensures that we flip all quads that were part of an original polygon at the same time.
+						//This means that even for non-orientable surfaces, there's a consistent rule for the coordinate transformation
+						//between quads.
+						MeshPoint pCentroid = neighbor.getCentroidPoint();
+						foreach (QuadCell centroidNeighbor ; pCentroid.neighbors) {
+							flipQuadVertexOrder(centroidNeighbor);
+						}
 					}
+					seen[neighbor] = true;
 					toProcess.insertFront(neighbor);
 				}
 			}
@@ -229,6 +245,7 @@ class QuadMesh {
 		QuadCell current = null;
 
 		//If this is a vertex where two of the quads don't meet each other, we have to start with one of the quads with a single neighbor
+		//This happens in cases where there's a cleft in the surface.
 		for (int i = 0; i < point.neighbors.length; i++) {
 			QuadCell quad = point.neighbors[i];
 			int neighborCount = 0;
@@ -249,6 +266,7 @@ class QuadMesh {
 		newNeighbors ~= [current];
 
 		while (point.neighbors.length > 0) {
+			bool found = false;
 			for (int i = 0; i < point.neighbors.length; i++) {
 				QuadCell testCell = point.neighbors[i];
 
@@ -256,8 +274,14 @@ class QuadMesh {
 					newNeighbors ~= [testCell];
 					current = testCell;
 					point.neighbors = point.neighbors[0 .. i] ~ point.neighbors[i+1 .. $];
+					found = true;
 					break;
 				}
+			}
+			if (!found) {
+				//This only happens if the vertex is adjacent to multiple quads, but there are at least two separate
+				//groups of them that have no common boundaries.
+				throw new Exception("Mesh vertex has two neighboring non-continuous faces");
 			}
 		}
 

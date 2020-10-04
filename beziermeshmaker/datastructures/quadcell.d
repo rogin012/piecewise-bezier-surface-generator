@@ -10,6 +10,8 @@ import beziermeshmaker.datastructures.biquarticbeziersurface;
 import modules.testing.DebugLog;
 
 class QuadCell {
+	immutable static string VERTEX_METADATA_KEY = "originalVertexNum";
+
 	//Vertices should be defined so vertices[0] is the P vertex associated with an original mesh vertex
 	//This means that vertices[2] is the P vertex associated with the centroid of a cell in the original mesh
 	//Note that we can't depend on which order vertices[1] and vertices[3] are in, since that depends on the order of the original polygon's vertices (or equivalently, on its normal direction)
@@ -26,6 +28,9 @@ class QuadCell {
 
 	bool border = false; //Set to true if this is an extra cell added to extend the border, that should be trimmed later.
 	BiquarticBezierSurface surfacePatch;
+
+	//Used to carry forward information from the initial polygons to the output surfaces
+	string[string] metadata;
 
 	this() {
 		this(0.5, 0.5); //Defaults suggested by the paper
@@ -115,7 +120,12 @@ class QuadCell {
 
 	public void setNeighbor(int index, QuadCell cell) {
 		neighbors[index] = cell;
-		surfacePatch.neighbors[index] = cell.surfacePatch;
+		if (cell is null) {
+			surfacePatch.neighbors[index] = null;
+		}
+		else {
+			surfacePatch.neighbors[index] = cell.surfacePatch;
+		}
 	}
 	public QuadCell getNeighbor(int index) {
 		return neighbors[index];
@@ -135,5 +145,14 @@ class QuadCell {
 			}
 		}
 		return true;
+	}
+	public MeshPoint getCentroidPoint() {
+		for (int i = 0; i < vertices.length; i++) {
+			if (vertices[i].ptType == MeshPoint.P_TYPE_CENTROID) {
+				return vertices[i];
+			}
+		}
+		//This can't happen, but it's better than returning null
+		throw new Exception("No centroid vertex");
 	}
 }
