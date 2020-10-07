@@ -23,13 +23,24 @@ class QuadMesh {
 
 	float gammaBlend = 0.125; //Recommended default
 
-	this(PolyMesh polyMesh) {
+	/*
+	 * Takes a polygon mesh and converts it into a linked bezier quilt.  Bezier surfaces on the edge of the quilt are underspecified
+	 * and will be dropped, though if fixEdges is true they will be treated as though there were additional neighboring polygons with
+	 * the same side length and normal.
+	 */
+	this(PolyMesh polyMesh, bool fixEdges = true) {
 		//Construct all of the quad cells, making sure that any common corners map to the same MeshPoint
 		subdivideMeshAndLinkVertices(polyMesh);
 
 		//At this point, all of the MeshPoints' surrounding quads are set, and all of the QuadCell vertices are set.
 		//It remains only to find the QuadCells' neighbors.
 		linkQuads();
+
+		if (fixEdges) {
+			//The algorithm has to drop the quads on the edges, since they're otherwise underspecified.  To get around this, we add
+			//an extra set of edge quads to expand the mesh first.
+			addEdgeQuads();
+		}
 
 		//If adjacent quads have inconsistent vertex orders/normals, it breaks the connection guarantee Pi(0, t) = Pi+1(t, 0)
 		//This can still happen for non-orientable surfaces, though all quads for a given input polygon will share the same final orientation.
@@ -112,6 +123,47 @@ class QuadMesh {
 						break;
 					}
 				}
+			}
+		}
+	}
+
+	/*
+	 * Adds additional quads so that the edges of the input mesh won't be dropped.
+	 * After this, the new quads will be the only ones missing neighbors, so they'll be dropped during the last part of
+	 * the algorithm, leaving exactly the set of quads that were part of the original mesh.
+	 */
+	private void addEdgeQuads() {
+		foreach (QuadCell cell ; cells) {
+			for (int i = 0; i < 4; i++) {
+				QuadCell neighbor = cell.getNeighbor(i);
+				if (neighbor !is null) {
+					continue;
+				}
+
+				MeshPoint sharedA = cell.vertices[i];
+				MeshPoint sharedB = cell.vertices[ (i+1) % 4];
+
+				MeshPoint oppositeA = cell.vertices[ (i+3) % 4];
+				MeshPoint oppositeB = cell.vertices[ (i+2) % 4];
+
+				//Extend the edges between sharedA and sharedB in the other direction to form the missing vertices of the new quad
+				MeshPoint newPointOppositeA = new MeshPoint(sharedA.pt + (sharedA.pt - oppositeA.pt), oppositeA.ptType);
+				MeshPoint newPointOppositeB = new MeshPoint(sharedB.pt + (sharedB.pt - oppositeB.pt), oppositeB.ptType);
+
+				QuadCell edgeCell = new QuadCell();
+				//There are really only two cases where this can happen (i == 0 and i == 3), since sides 0 and 3 are the ones that
+				//are on the edge of the original polygon.
+				if (sharedA.ptType == MeshPoint.P_TYPE_ORIGINAL) {
+					edgeCell.vertices = [sharedA, sharedB, newPointOppositeB, newPointOppositeA];
+				}
+				else {
+					edgeCell.vertices = [sharedB, newPointOppositeB, newPointOppositeA, sharedA];
+				}
+				cells ~= [edgeCell];
+				sharedA.neighbors ~= [edgeCell];
+				sharedB.neighbors ~= [edgeCell];
+				cell.setNeighbor(i, edgeCell);
+				edgeCell.setNeighbor(i, cell);
 			}
 		}
 	}
