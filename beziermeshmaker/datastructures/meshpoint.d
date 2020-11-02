@@ -8,6 +8,7 @@ class MeshPoint {
 	public static immutable int P_TYPE_CENTROID = 2; //P type vertices that were centroids in the original mesh
 	public static immutable int M_TYPE = 3;
 
+	//Experimentally determined defaults
 	public static float ALPHA_BLEND_DEFAULT = 2;
 	public static float BETA_BLEND_DEFAULT = 1;
 

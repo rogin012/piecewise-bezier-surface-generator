@@ -7,8 +7,6 @@ import beziermeshmaker.datastructures.meshpoint;
 import beziermeshmaker.datastructures.vec3;
 import beziermeshmaker.datastructures.biquarticbeziersurface;
 
-import modules.testing.DebugLog;
-
 class QuadCell {
 	immutable static string VERTEX_METADATA_KEY = "originalVertexNum";
 

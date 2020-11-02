@@ -138,6 +138,3 @@ class vec3{
 		return "vec3(" ~ xStr ~ ", " ~ yStr ~ ", " ~ zStr ~ ")";
 	}
 }
-
-//There's no vec3_struct defined here because opengl has idiosyncratic behavior for vec3s and they're best avoided if exact
-//byte alignment matters (such as when passing data in buffers to the GPU).

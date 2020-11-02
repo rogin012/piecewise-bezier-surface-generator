@@ -4,14 +4,13 @@ import std.math;
 import std.container;
 import std.conv;
 import std.algorithm;
+import std.format;
 
 public import beziermeshmaker.datastructures.meshpoint;
 public import beziermeshmaker.datastructures.quadcell;
 import beziermeshmaker.datastructures.input.polygon;
 import beziermeshmaker.datastructures.input.polymesh;
 import beziermeshmaker.datastructures.vec3;
-
-import modules.testing.DebugLog;
 
 /*
  * The algorithm implemented here is from the paper Biquartic C1 Spline Surfaces Over Irregular Meshes, by Jörg Peters 1994
@@ -28,6 +27,10 @@ class QuadMesh {
 	 * and will be dropped, though if fixEdges is true they will be treated as though there were additional neighboring polygons with
 	 * the same side length and normal.
 	 */
+	this(PolyMesh polyMesh, float gammaBlend, bool fixEdges = true) {
+		this.gammaBlend = gammaBlend;
+		this(polyMesh, fixEdges);
+	}
 	this(PolyMesh polyMesh, bool fixEdges = true) {
 		//Construct all of the quad cells, making sure that any common corners map to the same MeshPoint
 		subdivideMeshAndLinkVertices(polyMesh);
@@ -278,7 +281,7 @@ class QuadMesh {
 		}
 
 		if (cell.surfacePatch.controlPoints[i][j] !is null && cell.surfacePatch.controlPoints[i][j] != value) {
-			writeNow("was %s, became: %s", cell.surfacePatch.controlPoints[i][j], value);
+			throw new Exception(format("Control point reassigned: was %s, became: %s", cell.surfacePatch.controlPoints[i][j], value));
 		}
 
 		cell.surfacePatch.controlPoints[i][j] = value;
