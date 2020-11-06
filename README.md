@@ -31,6 +31,7 @@ Constraints on the input polygons:
 * They can't be degenerate (i.e. no zero length sides, number of sides must be at least 3).
 * If two polygons have a vertex at the same point in space, that's considered a shared vertex.  Two polygons that share a vertex must also share at least one adjacent vertex (i.e. they must also share an edge).
 * Each edge can be shared by at most two polygons.
+
 Aside from these limitations, this should work with arbitrary meshes (open/closed, multiple disjoint surfaces, arbitrary vertex valence, any number of polygon sides, etc...)
 
 ### Parameters from the Paper
