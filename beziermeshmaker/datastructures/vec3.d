@@ -5,8 +5,6 @@ import std.string;
 import std.conv;
 import std.math;
 
-import modules.opengl.EitanOpenGLClasses;
-
 /*
  *This acts as an ordinary Vector3f, except that it can also be passed into openGL functions
  */
