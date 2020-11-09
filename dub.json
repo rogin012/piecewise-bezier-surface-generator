@@ -1,0 +1,8 @@
+{
+	"authors": [
+		"Eitan Rogin"
+	],
+	"description": "An implementation of the algorithm described in the paper Biquartic C1 Spline Surfaces Over Irregular Meshes, by Jörg Peters 1994",
+	"license": "MIT",
+	"name": "piecewise-bezier-surface-generator"
+}
