@@ -8,20 +8,20 @@ The input has a few constraints (see Usage), but in general allows for relativel
 The original mesh is outlined in yellow wireframe and the boundaries of the bezier surface patches are indicated with dark gray dotted lines.  The surface patch coloration is a function of the normal.
 
 1. Standard cube<br/>
-![Sample 1](https://i.imgur.com/yxmUtIV.png)
+![Sample 1](samples/Cube.png)
 
 2. Cylinder (octagonal prism)<br/>
-![Sample 2](https://i.imgur.com/8WMD5fg.png)
-![Sample 3](https://i.imgur.com/OQH11aI.png)
+![Sample 2](samples/Cylinder.png)
+![Sample 3](samples/Cylinder2.png)
 
 3. A simple triangle - in general, when the mesh isn't closed, the final bezier surface will tend to pull in from the corners.<br/>
-![Sample 4](https://i.imgur.com/AyB565g.png)
+![Sample 4](samples/Triangle.png)
 
 4. Some more complex shapes, with their original surfaces also shown for clarity<br/>
-![Sample 5](https://i.imgur.com/DRwagfF.png)
-![Sample 6](https://i.imgur.com/mzn3rIi.png)
-![Sample 7](https://i.imgur.com/WvWSto5.png)
-![Sample 8](https://i.imgur.com/WSJsiPl.png)
+![Sample 5](samples/Boxy.png)
+![Sample 6](samples/BoxySurface.png)
+![Sample 7](samples/Column.png)
+![Sample 8](samples/ColumnSurface.png)
 
 ## Usage
 See `beziermeshmaker/examples/demo.d`
